@@ -1,61 +1,150 @@
 # GitLab CI/CD Variables Configuration Example
 # Copy this file and configure the variables in your GitLab project settings
 # Go to: Settings > CI/CD > Variables
+# 
+# This configuration is for the to-be-continuous Helm template v9.2.3+
+# Documentation: https://to-be-continuous.gitlab.io/doc/ref/helm/
 
 # =============================================================================
-# REQUIRED VARIABLES
+# GLOBAL CONFIGURATION
 # =============================================================================
 
-# Registry Configuration (choose one option)
+# Base application name (defaults to $CI_PROJECT_NAME)
+# HELM_BASE_APP_NAME=fossology
 
-# Option 1: GitLab Container Registry (recommended)
-HELM_REGISTRY_URL=$CI_REGISTRY_URL
-HELM_REGISTRY_USER=$CI_REGISTRY_USER
-HELM_REGISTRY_PASSWORD=$CI_REGISTRY_PASSWORD
+# Helm CLI image version
+# HELM_CLI_IMAGE=docker.io/alpine/helm:latest
 
-# Option 2: External OCI Registry (Harbor, AWS ECR, etc.)
-# HELM_REGISTRY_URL=https://harbor.example.com
-# HELM_REGISTRY_USER=robot$helm-pusher
-# HELM_REGISTRY_PASSWORD=your-robot-token
+# Chart and scripts directories
+# HELM_CHART_DIR=.
+# HELM_SCRIPTS_DIR=.
 
-# Option 3: AWS ECR
-# HELM_REGISTRY_URL=123456789012.dkr.ecr.us-west-2.amazonaws.com
-# HELM_REGISTRY_USER=AWS
-# HELM_REGISTRY_PASSWORD=$(aws ecr get-login-password)
+# Common values file for all environments
+# HELM_COMMON_VALUES=values.yaml
 
 # =============================================================================
-# KUBERNETES DEPLOYMENT VARIABLES (optional, for auto-deployment)
+# PUBLISHING CONFIGURATION
 # =============================================================================
 
-# Staging cluster kubeconfig (base64 encoded)
+# Publishing method (auto, push, post, put, custom, disabled)
+# HELM_PUBLISH_METHOD=auto
+
+# Publishing strategy (manual, auto, none)
+# HELM_PUBLISH_STRATEGY=manual
+
+# Publishing triggers (prod, protected, all, tag)
+# HELM_PUBLISH_ON=prod
+
+# Option 1: GitLab Container Registry (OCI) - Default
+# HELM_PUBLISH_URL=oci://$CI_REGISTRY/$CI_PROJECT_PATH/charts
+# HELM_PUBLISH_USER=$CI_REGISTRY_USER
+# HELM_PUBLISH_PASSWORD=$CI_REGISTRY_PASSWORD
+
+# Option 2: GitLab Package Registry (Helm)
+# HELM_PUBLISH_URL=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/release
+# HELM_PUBLISH_USER=gitlab-ci-token
+# HELM_PUBLISH_PASSWORD=$CI_JOB_TOKEN
+
+# Option 3: External OCI Registry (Harbor, AWS ECR, etc.)
+# HELM_PUBLISH_URL=oci://harbor.example.com/charts
+# HELM_PUBLISH_USER=robot$helm-pusher
+# HELM_PUBLISH_PASSWORD=your-robot-token
+
+# Option 4: External Chart Repository
+# HELM_PUBLISH_URL=https://charts.example.com/api/charts
+# HELM_PUBLISH_USER=your-username
+# HELM_PUBLISH_PASSWORD=your-password
+
+# =============================================================================
+# ENVIRONMENT CONFIGURATION
+# =============================================================================
+
+# Default environment URL pattern (supports late variable expansion)
+# HELM_ENVIRONMENT_URL=https://%{environment_name}.example.com
+
+# Review environments (dynamic environments for feature branches)
+# HELM_REVIEW_ENABLED=true
+# HELM_REVIEW_APP_NAME=${HELM_BASE_APP_NAME}-${CI_ENVIRONMENT_SLUG}
+# HELM_REVIEW_ENVIRONMENT_URL=https://%{environment_name}.review.example.com
+# HELM_REVIEW_NAMESPACE=review
+# HELM_REVIEW_VALUES=values-review.yaml
+# HELM_REVIEW_AUTOSTOP_DURATION=4 hours
+# HELM_REVIEW_KUBE_CONFIG=<base64-encoded-kubeconfig>
+
+# Integration environment (for develop branch)
+# HELM_INTEG_ENABLED=true
+# HELM_INTEG_APP_NAME=${HELM_BASE_APP_NAME}-integration
+# HELM_INTEG_ENVIRONMENT_URL=https://%{environment_name}.example.com
+# HELM_INTEG_NAMESPACE=integration
+# HELM_INTEG_VALUES=values-integration.yaml
+# HELM_INTEG_KUBE_CONFIG=<base64-encoded-kubeconfig>
+
+# Staging environment (for main/master branch)
+# HELM_STAGING_ENABLED=true
+# HELM_STAGING_APP_NAME=${HELM_BASE_APP_NAME}-staging
+# HELM_STAGING_ENVIRONMENT_URL=https://%{environment_name}.example.com
+# HELM_STAGING_NAMESPACE=staging
+# HELM_STAGING_VALUES=values-staging.yaml
+# HELM_STAGING_KUBE_CONFIG=<base64-encoded-kubeconfig>
+
+# Production environment (for main/master branch)
+# HELM_PROD_ENABLED=true
+# HELM_PROD_APP_NAME=${HELM_BASE_APP_NAME}
+# HELM_PROD_ENVIRONMENT_URL=https://fossology.example.com
+# HELM_PROD_NAMESPACE=production
+# HELM_PROD_VALUES=values-production.yaml
+# HELM_PROD_DEPLOY_STRATEGY=manual
+# HELM_PROD_KUBE_CONFIG=<base64-encoded-kubeconfig>
+
+# =============================================================================
+# KUBERNETES CONFIGURATION
+# =============================================================================
+
+# Default Kubernetes namespace
+# KUBE_NAMESPACE=default
+
+# Kubernetes context (for GitLab agents)
+# KUBE_CONTEXT=path/to/agent/project:agent-name
+
+# Default kubeconfig (base64 encoded)
 # Generate with: kubectl config view --raw --minify | base64 -w 0
-# KUBE_CONFIG_STAGING=LS0tLS1CRUdJTi1DRVJUSUZJQ0FURS0tLS0t...
-
-# Production cluster kubeconfig (base64 encoded)
-# KUBE_CONFIG_PRODUCTION=LS0tLS1CRUdJTi1DRVJUSUZJQ0FURS0tLS0t...
+# HELM_DEFAULT_KUBE_CONFIG=<base64-encoded-kubeconfig>
 
 # =============================================================================
-# OPTIONAL VARIABLES
+# CHART REPOSITORIES
 # =============================================================================
 
-# Traditional Git-based Helm repository
-# HELM_REPO_URL=https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.example.com/charts/helm-charts.git
+# Helm chart repositories (space-separated list of name@url)
+# HELM_REPOS=stable@https://charts.helm.sh/stable bitnami@https://charts.bitnami.com/bitnami
 
-# Custom chart version (overrides Chart.yaml version)
-# CHART_VERSION=1.0.1
+# Repository authentication (for private repositories)
+# HELM_REPO_<NAME>_USER=username
+# HELM_REPO_<NAME>_PASSWORD=password
 
-# Custom Helm versions
-# HELM_VERSION=3.14.0
-# CT_VERSION=3.10.1
-# KUBECTL_VERSION=1.29.0
-# KIND_VERSION=0.20.0
+# =============================================================================
+# JOB CONFIGURATION
+# =============================================================================
 
-# Custom registry path for OCI
-# HELM_REGISTRY_PATH=charts/fossology
+# Helm lint configuration
+# HELM_LINT_DISABLED=false
+# HELM_LINT_ARGS=lint --strict
 
-# Environment URLs (for GitLab environments)
-# STAGING_URL=https://fossology-staging.example.com
-# PRODUCTION_URL=https://fossology.example.com
+# YAML lint configuration
+# HELM_YAMLLINT_DISABLED=false
+# HELM_YAMLLINT_CONFIG={extends: relaxed, rules: {line-length: {max: 160}}}
+
+# Kube-score configuration
+# HELM_KUBE_SCORE_DISABLED=false
+# HELM_K8S_VERSION=v1.28
+
+# Helm test configuration
+# HELM_TEST_ENABLED=false
+# HELM_TEST_ARGS=test
+
+# Package configuration
+# HELM_PACKAGE_ARGS=package --dependency-update
+# HELM_PUBLISH_SNAPSHOT_ENABLED=false
+# HELM_SEMREL_RELEASE_DISABLED=false
 
 # =============================================================================
 # VARIABLE SETTINGS IN GITLAB
@@ -71,28 +160,49 @@ HELM_REGISTRY_PASSWORD=$CI_REGISTRY_PASSWORD
 #    - Expand variable reference: ✓ (if using $CI_* variables)
 
 # Example variable configurations:
-# HELM_REGISTRY_URL: 
-#   - Value: $CI_REGISTRY_URL
+
+# HELM_PUBLISH_URL: 
+#   - Value: oci://$CI_REGISTRY/$CI_PROJECT_PATH/charts
 #   - Protected: ✓
 #   - Masked: ✗
 #   - Expand: ✓
 
-# HELM_REGISTRY_PASSWORD:
+# HELM_PUBLISH_PASSWORD:
 #   - Value: $CI_REGISTRY_PASSWORD
 #   - Protected: ✓
 #   - Masked: ✓
 #   - Expand: ✓
 
-# KUBE_CONFIG_STAGING:
+# HELM_DEFAULT_KUBE_CONFIG:
+#   - Value: LS0tLS1CRUdJTi1DRVJUSUZJQ0FURS0tLS0t...
+#   - Protected: ✓
+#   - Masked: ✓
+#   - Expand: ✗
+
+# HELM_STAGING_KUBE_CONFIG:
 #   - Value: LS0tLS1CRUdJTi1DRVJUSUZJQ0FURS0tLS0t...
 #   - Protected: ✓
 #   - Masked: ✓
 #   - Expand: ✗
 #   - Environment scope: staging (optional)
 
-# KUBE_CONFIG_PRODUCTION:
+# HELM_PROD_KUBE_CONFIG:
 #   - Value: LS0tLS1CRUdJTi1DRVJUSUZJQ0FURS0tLS0t...
 #   - Protected: ✓
 #   - Masked: ✓
 #   - Expand: ✗
 #   - Environment scope: production (optional)
+
+# =============================================================================
+# MIGRATION FROM LEGACY VARIABLES
+# =============================================================================
+
+# If migrating from a previous implementation, map these variables:
+# Old Variable                    -> New Variable
+# HELM_REGISTRY_URL              -> HELM_PUBLISH_URL (with oci:// prefix for OCI)
+# HELM_REGISTRY_USER             -> HELM_PUBLISH_USER
+# HELM_REGISTRY_PASSWORD         -> HELM_PUBLISH_PASSWORD
+# KUBE_CONFIG_STAGING            -> HELM_STAGING_KUBE_CONFIG
+# KUBE_CONFIG_PRODUCTION         -> HELM_PROD_KUBE_CONFIG
+# CHART_VERSION                  -> Use semantic-release or Chart.yaml version
+# HELM_REPO_URL                  -> HELM_PUBLISH_URL (for traditional repos)

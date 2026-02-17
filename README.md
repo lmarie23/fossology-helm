@@ -353,34 +353,53 @@ This chart includes comprehensive CI/CD pipelines for both GitHub Actions and Gi
 
 ### GitLab CI/CD Pipeline
 
-The GitLab CI/CD pipeline ([`.gitlab-ci.yml`](.gitlab-ci.yml)) provides:
+The GitLab CI/CD pipeline ([`.gitlab-ci.yml`](.gitlab-ci.yml)) uses the [to-be-continuous Helm template](https://to-be-continuous.gitlab.io/doc/ref/helm/) and provides:
 
-- **Validation**: Helm chart linting and template validation
-- **Testing**: Chart testing with Kubernetes integration tests using Kind
-- **Security**: Security scanning and vulnerability checks
-- **Packaging**: Helm chart packaging and repository indexing
-- **Release**: Automated push to private OCI or traditional Helm registries
-- **Deployment**: Automated deployment to staging and production environments
+- **Validation**: Helm chart linting, YAML validation, and Kube-Score analysis
+- **Testing**: Optional Helm tests with chart testing capabilities
+- **Security**: Security scanning and vulnerability checks (SAST, Secret Detection)
+- **Packaging**: Helm chart packaging with semantic versioning support
+- **Publishing**: Push to OCI registries, traditional Helm repositories, or GitLab Package Registry
+- **Deployment**: Multi-environment deployment (review, integration, staging, production)
 
 #### Quick Setup
 
-1. **Configure Registry Variables** in GitLab project settings:
-   ```bash
-   HELM_REGISTRY_URL=$CI_REGISTRY_URL
-   HELM_REGISTRY_USER=$CI_REGISTRY_USER
-   HELM_REGISTRY_PASSWORD=$CI_REGISTRY_PASSWORD
+1. **Basic Configuration** in [`.gitlab-ci.yml`](.gitlab-ci.yml):
+   ```yaml
+   include:
+     - template: Security/SAST.gitlab-ci.yml
+     - template: Security/Secret-Detection.gitlab-ci.yml
+     
+     - component: "$CI_SERVER_FQDN/to-be-continuous/helm/gitlab-ci-helm@9.2.3"
+       inputs:
+         base-app-name: "fossology"
+         publish-strategy: "auto"
+         publish-url: "oci://$CI_REGISTRY/$CI_PROJECT_PATH/charts"
    ```
 
-2. **Optional: Configure Kubernetes Deployment**:
+2. **Optional: Configure Publishing Variables** in GitLab project settings:
    ```bash
-   KUBE_CONFIG_STAGING=<base64-encoded-kubeconfig>
-   KUBE_CONFIG_PRODUCTION=<base64-encoded-kubeconfig>
+   # For GitLab Container Registry (default)
+   HELM_PUBLISH_USER=$CI_REGISTRY_USER
+   HELM_PUBLISH_PASSWORD=$CI_REGISTRY_PASSWORD
+   
+   # For external registries
+   HELM_PUBLISH_USER=your-username
+   HELM_PUBLISH_PASSWORD=your-password
    ```
 
-3. **Pipeline Triggers**:
-   - **Merge Requests**: Validation and testing
-   - **Main Branch**: Full pipeline with packaging
-   - **Tags**: Full release including production deployment
+3. **Optional: Configure Kubernetes Deployment**:
+   ```bash
+   HELM_DEFAULT_KUBE_CONFIG=<base64-encoded-kubeconfig>
+   HELM_STAGING_KUBE_CONFIG=<base64-encoded-kubeconfig>
+   HELM_PROD_KUBE_CONFIG=<base64-encoded-kubeconfig>
+   ```
+
+4. **Pipeline Triggers**:
+   - **All Branches**: Validation jobs (helm-lint, helm-values-lint, helm-score)
+   - **Main Branch**: Full pipeline including packaging and publishing
+   - **Feature Branches**: Review environment deployment (if enabled)
+   - **Tags**: Production deployment (if enabled)
 
 For detailed setup instructions, see [`GITLAB_CI_SETUP.md`](GITLAB_CI_SETUP.md).
 
