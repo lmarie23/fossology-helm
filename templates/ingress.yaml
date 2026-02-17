@@ -5,7 +5,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}-web
   labels:
-{{ include "fossology.labels" . | indent 4 }}
+    {{- include "fossology.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

@@ -4,7 +4,7 @@ metadata:
   name: {{ include "fossology.fullname" . }}-web
   labels:
     app.kubernetes.io/name: {{ include "fossology.fullname" . }}-web
-{{ include "fossology.labels" . | indent 4 }}
+    {{- include "fossology.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:

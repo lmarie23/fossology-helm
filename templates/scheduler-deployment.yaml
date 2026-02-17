@@ -4,7 +4,7 @@ metadata:
   name: {{ include "fossology.fullname" . }}-scheduler
   labels:
     app.kubernetes.io/name: {{ include "fossology.fullname" . }}-scheduler
-{{ include "fossology.labels" . | indent 4 }}
+    {{- include "fossology.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:

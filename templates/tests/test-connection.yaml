@@ -3,7 +3,7 @@ kind: Pod
 metadata:
   name: "{{ include "fossology.fullname" . }}-test-connection"
   labels:
-{{ include "fossology.labels" . | indent 4 }}
+    {{- include "fossology.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": test-success
 spec:
