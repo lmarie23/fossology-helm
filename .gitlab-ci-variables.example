@@ -1,0 +1,98 @@
+# GitLab CI/CD Variables Configuration Example
+# Copy this file and configure the variables in your GitLab project settings
+# Go to: Settings > CI/CD > Variables
+
+# =============================================================================
+# REQUIRED VARIABLES
+# =============================================================================
+
+# Registry Configuration (choose one option)
+
+# Option 1: GitLab Container Registry (recommended)
+HELM_REGISTRY_URL=$CI_REGISTRY_URL
+HELM_REGISTRY_USER=$CI_REGISTRY_USER
+HELM_REGISTRY_PASSWORD=$CI_REGISTRY_PASSWORD
+
+# Option 2: External OCI Registry (Harbor, AWS ECR, etc.)
+# HELM_REGISTRY_URL=https://harbor.example.com
+# HELM_REGISTRY_USER=robot$helm-pusher
+# HELM_REGISTRY_PASSWORD=your-robot-token
+
+# Option 3: AWS ECR
+# HELM_REGISTRY_URL=123456789012.dkr.ecr.us-west-2.amazonaws.com
+# HELM_REGISTRY_USER=AWS
+# HELM_REGISTRY_PASSWORD=$(aws ecr get-login-password)
+
+# =============================================================================
+# KUBERNETES DEPLOYMENT VARIABLES (optional, for auto-deployment)
+# =============================================================================
+
+# Staging cluster kubeconfig (base64 encoded)
+# Generate with: kubectl config view --raw --minify | base64 -w 0
+# KUBE_CONFIG_STAGING=LS0tLS1CRUdJTi1DRVJUSUZJQ0FURS0tLS0t...
+
+# Production cluster kubeconfig (base64 encoded)
+# KUBE_CONFIG_PRODUCTION=LS0tLS1CRUdJTi1DRVJUSUZJQ0FURS0tLS0t...
+
+# =============================================================================
+# OPTIONAL VARIABLES
+# =============================================================================
+
+# Traditional Git-based Helm repository
+# HELM_REPO_URL=https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.example.com/charts/helm-charts.git
+
+# Custom chart version (overrides Chart.yaml version)
+# CHART_VERSION=1.0.1
+
+# Custom Helm versions
+# HELM_VERSION=3.14.0
+# CT_VERSION=3.10.1
+# KUBECTL_VERSION=1.29.0
+# KIND_VERSION=0.20.0
+
+# Custom registry path for OCI
+# HELM_REGISTRY_PATH=charts/fossology
+
+# Environment URLs (for GitLab environments)
+# STAGING_URL=https://fossology-staging.example.com
+# PRODUCTION_URL=https://fossology.example.com
+
+# =============================================================================
+# VARIABLE SETTINGS IN GITLAB
+# =============================================================================
+
+# When setting these variables in GitLab:
+# 1. Go to your project > Settings > CI/CD > Variables
+# 2. Add each variable with appropriate settings:
+#    - Type: Variable (default)
+#    - Environment scope: All (default) or specific environments
+#    - Protect variable: ✓ (for sensitive data)
+#    - Mask variable: ✓ (for passwords/tokens)
+#    - Expand variable reference: ✓ (if using $CI_* variables)
+
+# Example variable configurations:
+# HELM_REGISTRY_URL: 
+#   - Value: $CI_REGISTRY_URL
+#   - Protected: ✓
+#   - Masked: ✗
+#   - Expand: ✓
+
+# HELM_REGISTRY_PASSWORD:
+#   - Value: $CI_REGISTRY_PASSWORD
+#   - Protected: ✓
+#   - Masked: ✓
+#   - Expand: ✓
+
+# KUBE_CONFIG_STAGING:
+#   - Value: LS0tLS1CRUdJTi1DRVJUSUZJQ0FURS0tLS0t...
+#   - Protected: ✓
+#   - Masked: ✓
+#   - Expand: ✗
+#   - Environment scope: staging (optional)
+
+# KUBE_CONFIG_PRODUCTION:
+#   - Value: LS0tLS1CRUdJTi1DRVJUSUZJQ0FURS0tLS0t...
+#   - Protected: ✓
+#   - Masked: ✓
+#   - Expand: ✗
+#   - Environment scope: production (optional)

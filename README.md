@@ -347,6 +347,47 @@ helm diff upgrade my-fossology fossology/fossology
 helm upgrade my-fossology fossology/fossology
 ```
 
+## CI/CD and Release Management
+
+This chart includes comprehensive CI/CD pipelines for both GitHub Actions and GitLab CI/CD.
+
+### GitLab CI/CD Pipeline
+
+The GitLab CI/CD pipeline ([`.gitlab-ci.yml`](.gitlab-ci.yml)) provides:
+
+- **Validation**: Helm chart linting and template validation
+- **Testing**: Chart testing with Kubernetes integration tests using Kind
+- **Security**: Security scanning and vulnerability checks
+- **Packaging**: Helm chart packaging and repository indexing
+- **Release**: Automated push to private OCI or traditional Helm registries
+- **Deployment**: Automated deployment to staging and production environments
+
+#### Quick Setup
+
+1. **Configure Registry Variables** in GitLab project settings:
+   ```bash
+   HELM_REGISTRY_URL=$CI_REGISTRY_URL
+   HELM_REGISTRY_USER=$CI_REGISTRY_USER
+   HELM_REGISTRY_PASSWORD=$CI_REGISTRY_PASSWORD
+   ```
+
+2. **Optional: Configure Kubernetes Deployment**:
+   ```bash
+   KUBE_CONFIG_STAGING=<base64-encoded-kubeconfig>
+   KUBE_CONFIG_PRODUCTION=<base64-encoded-kubeconfig>
+   ```
+
+3. **Pipeline Triggers**:
+   - **Merge Requests**: Validation and testing
+   - **Main Branch**: Full pipeline with packaging
+   - **Tags**: Full release including production deployment
+
+For detailed setup instructions, see [`GITLAB_CI_SETUP.md`](GITLAB_CI_SETUP.md).
+
+### GitHub Actions Pipeline
+
+The GitHub Actions pipeline ([`.github/workflows/`](.github/workflows/)) provides similar functionality optimized for GitHub environments.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing to this chart.
