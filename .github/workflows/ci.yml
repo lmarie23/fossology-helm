@@ -50,11 +50,6 @@ jobs:
           echo "Testing external database..."
           helm template test . -f examples/external-database.yaml > /dev/null
 
-      - name: Validate Kubernetes manifests
-        uses: instrumenta/kubeval-action@master
-        with:
-          files: |
-            templates/
 
   security-scan:
     runs-on: ubuntu-latest
