@@ -356,7 +356,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing to this ch
 ## Source Code
 
 * <https://github.com/fossology/fossology>
-
+* <https://github.com/fossology/fossology-helm>
 
 ## Maintainers
 
