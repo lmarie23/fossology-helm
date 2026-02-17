@@ -1,0 +1,97 @@
+# Example values file for Fossology with CloudNativePG
+# This file demonstrates how to configure Fossology with a CNPG PostgreSQL cluster
+
+# Enable CNPG PostgreSQL cluster
+postgresql:
+  enabled: true
+  
+  # Basic CNPG configuration
+  name: "fossology-postgresql"
+  instances: 1  # Use 3 for production high availability
+  
+  # Database initialization
+  database: "app"
+  username: "app"
+  
+  # Storage configuration
+  storage:
+    size: "20Gi"
+    # storageClass: "fast-ssd"  # Uncomment and set if you need a specific storage class
+  
+  # Resources (recommended for production)
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  
+  # PostgreSQL configuration
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "512MB"
+      maintenance_work_mem: "64MB"
+      checkpoint_completion_target: "0.9"
+      wal_buffers: "16MB"
+      default_statistics_target: "100"
+      random_page_cost: "1.1"
+      effective_io_concurrency: "200"
+  
+  # Monitoring configuration (optional)
+  monitoring:
+    enabled: true
+    prometheusRule:
+      enabled: true
+  
+  # SQL scripts to run after database initialization
+  initSQL:
+    - "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
+    - "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+
+# Fossology configuration
+fossology:
+  # Database credentials (these will be used for the CNPG cluster)
+  db_name: app  # Should match postgresql.database
+  db_user: app  # Should match postgresql.username
+  db_password: "your-secure-password-here"  # Change this!
+  db_port: 5432
+  # db_host will be automatically set to {postgresql.name}-rw when CNPG is enabled
+
+# Other Fossology configuration
+replicaCount: 1
+namespace: fossology
+
+image:
+  repository: fossology/fossology
+  tag: "4.4.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  class: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: fossology.example.com
+      paths: ['/']
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi

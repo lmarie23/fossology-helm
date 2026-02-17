@@ -1,0 +1,19 @@
+{{- if .Values.dbimage.enableTestDb }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fossology.fullname" . }}-db
+  labels:
+    app.kubernetes.io/name: {{ include "fossology.fullname" . }}-db
+{{ include "fossology.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.fossology.db_port}}
+      targetPort: postgrsql
+      protocol: TCP
+      name: postgrsql
+  selector:
+    app.kubernetes.io/name: {{ include "fossology.fullname" . }}-db
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}

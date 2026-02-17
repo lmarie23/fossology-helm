@@ -1,0 +1,75 @@
+# FOSSology deployment with external database
+# This example shows how to connect to an existing PostgreSQL database
+
+# Standard configuration
+replicaCount: 1
+namespace: fossology
+
+# Use stable image
+image:
+  repository: fossology/fossology
+  tag: "4.4.0"
+  pullPolicy: IfNotPresent
+
+# Disable embedded PostgreSQL and CNPG
+dbimage:
+  enableTestDb: false
+
+postgresql:
+  enabled: false
+
+# Configure external database connection
+fossology:
+  # Use external secret for sensitive database credentials
+  externalSecret: fossology-db-secret
+  
+  # Or configure directly (not recommended for production)
+  db_name: fossology_prod
+  db_user: fossology_user
+  db_password: ""  # Will be read from external secret
+  db_port: 5432
+  db_host: "postgres.company.com"  # External PostgreSQL host
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+# Ingress configuration
+ingress:
+  enabled: true
+  class: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  hosts:
+    - host: fossology.company.com
+      paths: ['/']
+
+# Persistence for application data
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 20Gi
+
+# Resource configuration
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+
+# Example of using image pull secrets for private registries
+imagePullSecrets:
+  - name: company-registry-secret
+
+# Or create the secret from the chart
+imagePullSecret:
+  create: false  # Set to true if you want to create the secret
+  name: "company-registry-secret"
+  registry: "registry.company.com"
+  username: ""  # Set your registry username
+  password: ""  # Set your registry password
+  email: ""     # Set your registry email

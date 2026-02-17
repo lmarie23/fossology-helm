@@ -1,0 +1,27 @@
+apiVersion: v2
+name: fossology
+description: A Helm chart for deploying FOSSology - an open source license compliance software system and toolkit
+type: application
+version: 1.0.0
+appVersion: "4.4.0"
+home: https://www.fossology.org/
+sources:
+  - https://github.com/fossology/fossology
+  - https://github.com/fossology/fossology-helm
+maintainers:
+  - name: FOSSology Team
+    email: fossology@fossology.org
+    url: https://www.fossology.org/
+keywords:
+  - fossology
+  - license
+  - compliance
+  - scanning
+  - open-source
+  - legal
+  - spdx
+  - sbom
+annotations:
+  category: Legal
+  licenses: Apache-2.0
+icon: https://raw.githubusercontent.com/fossology/fossology/master/src/www/ui/images/fossology-logo.png

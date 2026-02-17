@@ -1,0 +1,8 @@
+# Minimal helmignore for publishing
+.git/
+*.tmp
+*.bak
+.vscode/
+.idea/
+node_modules/
+*.log

@@ -1,0 +1,19 @@
+apiVersion: cs.exposition.operator.tech.orange/v1alpha1
+kind: Exposition
+metadata:
+  name: {{ include "fossology.fullname" . }}-cav-gin
+  namespace: {{ .Values.namespace }}
+spec:
+  lbDomain: {{ .Values.exposition.host }}
+  lbProxyProtocol: false
+  lbZone: GIN
+  lbIP: 172.31.26.70 # IP address of the load-balancer of the ingress controller traefik
+  lbPort: 443
+  lbDescription: fossology exposition for DI DOS in CAV
+  lbPowerDnsTTL: 60
+  lbPdnsSecret:
+    name: pdns-api-key
+    namespace: ingress-traefik
+  lbService:
+    name: ""
+    namespace: ""

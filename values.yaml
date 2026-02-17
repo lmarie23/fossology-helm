@@ -1,0 +1,173 @@
+# Default values for fossology.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+namespace: default
+
+image:
+  repository: fossology/fossology
+  tag: latest
+  pullPolicy: IfNotPresent
+
+dbimage:
+# set to true if you need a temp db to be deployed with
+# the chart
+  enableTestDb: false
+  repository: postgres
+  tag: 9.6
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+# Override imagePullSecrets configuration
+# You can override this in your values file like:
+# imagePullSecrets:
+#   - name: your-registry-secret
+#   - name: another-secret
+# Or disable it entirely by setting:
+# imagePullSecrets: []
+
+# Image pull secret creation configuration
+imagePullSecret:
+  # Set to true to create the image pull secret from this chart
+  create: false
+  # Name of the secret to create
+  name: ""
+  # Registry configuration (only used if create: true)
+  registry: ""
+  username: ""
+  password: ""
+  email: ""
+nameOverride: ""
+fullnameOverride: ""
+
+fossology:
+#enable this value to point to an existing secret
+#   externalSecret: foo
+   db_name: fossology
+   db_user: fossology
+   db_password: ""
+   db_port:  5432
+   # Default to use CNPG cluster when enabled, otherwise external host
+   db_host: ""
+   # When using CNPG cluster, the host would be: {{ .Values.postgresql.name }}-rw
+# if you want to use an already deployed host
+# enable this parameter
+#   db_host: mydb.com
+
+
+service:
+  type: ClusterIP
+  port: 80
+
+servicescheduler:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  class: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: fossology.example.com
+      paths: ['/']
+
+exposition:
+  host: fossology.example.com
+
+
+
+persistence:
+  enabled: true
+  ## if you want job scheduling and temporary files to be persisted
+  ## you can provision a volume
+  ## existingClaim: yourclaimname
+  accessMode: ReadWriteMany
+  size: 10Gi
+
+resources: 
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# PostgreSQL configuration using CloudNativePG operator
+postgresql:
+  enabled: false  # Set to true to deploy CNPG cluster
+  
+  # Basic CNPG configuration
+  name: "fossology-postgresql"
+  instances: 1  # Use 3 for production high availability
+  
+  # Database initialization
+  database: "app"
+  username: "app"
+  
+  # Storage configuration
+  storage:
+    size: "8Gi"
+    # storageClass: ""  # Uncomment and set if you need a specific storage class
+  
+  # Resources (optional - uncomment to set resource limits)
+  # resources:
+  #   requests:
+  #     memory: "256Mi"
+  #     cpu: "250m"
+  #   limits:
+  #     memory: "512Mi"
+  #     cpu: "500m"
+  
+  # PostgreSQL configuration (optional)
+  # postgresql:
+  #   parameters:
+  #     max_connections: "200"
+  #     shared_buffers: "256MB"
+  #     effective_cache_size: "1GB"
+  
+  # Monitoring configuration (optional)
+  # monitoring:
+  #   enabled: true
+  #   prometheusRule:
+  #     enabled: true
+  
+  # Backup configuration (optional)
+  # backup:
+  #   retentionPolicy: "30d"
+  #   barmanObjectStore:
+  #     destinationPath: "s3://my-bucket/backups"
+  #     s3Credentials:
+  #       accessKeyId:
+  #         name: backup-creds
+  #         key: ACCESS_KEY_ID
+  #       secretAccessKey:
+  #         name: backup-creds
+  #         key: SECRET_ACCESS_KEY
+  #     wal:
+  #       retention: "5d"
+  #     data:
+  #       retention: "30d"
+  
+  # SQL scripts to run after database initialization (optional)
+  # initSQL:
+  #   - "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
+  #   - "CREATE EXTENSION IF NOT EXISTS pgcrypto;"

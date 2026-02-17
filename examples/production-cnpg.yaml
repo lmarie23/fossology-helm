@@ -1,0 +1,160 @@
+# Production FOSSology deployment with CloudNativePG
+# This example shows a production-ready configuration with high availability PostgreSQL
+
+# Production scaling
+replicaCount: 2
+namespace: fossology
+
+# Use specific image version for production
+image:
+  repository: fossology/fossology
+  tag: "4.4.0"
+  pullPolicy: IfNotPresent
+
+# Disable embedded PostgreSQL in favor of CNPG
+dbimage:
+  enableTestDb: false
+
+# Enable CloudNativePG cluster
+postgresql:
+  enabled: true
+  name: "fossology-postgresql"
+  instances: 3  # High availability with 3 instances
+  
+  # Database initialization
+  database: "fossology"
+  username: "fossology"
+  
+  # Production storage configuration
+  storage:
+    size: "100Gi"
+    storageClass: "fast-ssd"  # Use high-performance storage
+  
+  # Production resource allocation
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1000m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  
+  # Optimized PostgreSQL configuration
+  postgresql:
+    parameters:
+      max_connections: "300"
+      shared_buffers: "1GB"
+      effective_cache_size: "3GB"
+      maintenance_work_mem: "256MB"
+      checkpoint_completion_target: "0.9"
+      wal_buffers: "32MB"
+      default_statistics_target: "100"
+      random_page_cost: "1.1"
+      effective_io_concurrency: "200"
+      work_mem: "8MB"
+      min_wal_size: "1GB"
+      max_wal_size: "4GB"
+  
+  # Enable monitoring
+  monitoring:
+    enabled: true
+    prometheusRule:
+      enabled: true
+  
+  # Configure backups to S3
+  backup:
+    retentionPolicy: "30d"
+    barmanObjectStore:
+      destinationPath: "s3://my-backup-bucket/fossology-backups"
+      s3Credentials:
+        accessKeyId:
+          name: backup-creds
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: backup-creds
+          key: SECRET_ACCESS_KEY
+      wal:
+        retention: "7d"
+      data:
+        retention: "30d"
+  
+  # Initialize with required extensions
+  initSQL:
+    - "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
+    - "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+
+# Database configuration for CNPG
+fossology:
+  db_name: fossology
+  db_user: fossology
+  db_password: "your-secure-production-password"  # Use a strong password!
+  db_port: 5432
+  # db_host will be automatically set to fossology-postgresql-rw
+
+# Production service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+servicescheduler:
+  type: ClusterIP
+  port: 80
+
+# Production ingress with TLS
+ingress:
+  enabled: true
+  class: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+  hosts:
+    - host: fossology.company.com
+      paths: ['/']
+  tls:
+    - secretName: fossology-tls
+      hosts:
+        - fossology.company.com
+
+# Production persistence with larger storage
+persistence:
+  enabled: true
+  accessMode: ReadWriteMany  # For multi-replica deployment
+  size: 50Gi
+  storageClass: "fast-ssd"
+
+# Production resource allocation
+resources:
+  limits:
+    cpu: 4000m
+    memory: 8Gi
+  requests:
+    cpu: 2000m
+    memory: 4Gi
+
+# Node affinity for production workloads
+nodeSelector:
+  node-type: "compute-optimized"
+
+# Tolerations for dedicated nodes
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "fossology"
+    effect: "NoSchedule"
+
+# Anti-affinity to spread replicas across nodes
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - fossology
+        topologyKey: kubernetes.io/hostname

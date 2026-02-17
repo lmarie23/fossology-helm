@@ -1,0 +1,46 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Values.postgresql.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "fossology.labels" . | nindent 4 }}
+spec:
+  instances: {{ .Values.postgresql.instances }}
+  
+  bootstrap:
+    initdb:
+      database: {{ .Values.postgresql.database }}
+      owner: {{ .Values.postgresql.username }}
+      {{- if .Values.postgresql.initSQL }}
+      postInitSQL:
+        {{- toYaml .Values.postgresql.initSQL | nindent 8 }}
+      {{- end }}
+  
+  storage:
+    size: {{ .Values.postgresql.storage.size }}
+    {{- if .Values.postgresql.storage.storageClass }}
+    storageClass: {{ .Values.postgresql.storage.storageClass }}
+    {{- end }}
+  
+  {{- if .Values.postgresql.resources }}
+  resources:
+    {{- toYaml .Values.postgresql.resources | nindent 4 }}
+  {{- end }}
+  
+  {{- if .Values.postgresql.postgresql }}
+  postgresql:
+    {{- toYaml .Values.postgresql.postgresql | nindent 4 }}
+  {{- end }}
+
+  {{- if .Values.postgresql.monitoring }}
+  monitoring:
+    {{- toYaml .Values.postgresql.monitoring | nindent 4 }}
+  {{- end }}
+
+  {{- if .Values.postgresql.backup }}
+  backup:
+    {{- toYaml .Values.postgresql.backup | nindent 4 }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,56 @@
+# Basic FOSSology deployment with embedded PostgreSQL
+# This example shows a minimal configuration for development or testing
+
+# Basic configuration
+replicaCount: 1
+namespace: fossology
+
+# Use the latest stable image
+image:
+  repository: fossology/fossology
+  tag: "4.4.0"
+  pullPolicy: IfNotPresent
+
+# Enable embedded PostgreSQL for simplicity
+dbimage:
+  enableTestDb: true
+  repository: postgres
+  tag: "13"
+  pullPolicy: IfNotPresent
+
+# Database configuration
+fossology:
+  db_name: fossology
+  db_user: fossology
+  db_password: "fossology123"
+  db_port: 5432
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+# Enable basic ingress
+ingress:
+  enabled: true
+  class: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  hosts:
+    - host: fossology.local
+      paths: ['/']
+
+# Basic persistence
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+# Resource limits for development
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
