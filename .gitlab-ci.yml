@@ -19,6 +19,7 @@ include:
       # Publishing configuration
       publish-strategy: "auto"
       publish-url: "$HELM_REGISTRY_URL"
+      publish-on: "tag"
       
       # Environment configuration
       review-enabled: false
