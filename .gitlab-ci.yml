@@ -20,6 +20,7 @@ include:
       publish-strategy: "auto"
       publish-url: "$HELM_REGISTRY_URL"
       publish-on: "tag"
+      publish-method: "post"
       
       # Environment configuration
       review-enabled: false
