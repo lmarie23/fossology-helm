@@ -4,17 +4,12 @@ Thank you for your interest in contributing to the FOSSology Helm chart! This do
 
 ## Table of Contents
 
-- [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
 - [Making Changes](#making-changes)
 - [Testing](#testing)
 - [Submitting Changes](#submitting-changes)
 - [Release Process](#release-process)
-
-## Code of Conduct
-
-This project follows the [FOSSology Code of Conduct](https://www.fossology.org/code-of-conduct/). By participating, you are expected to uphold this code.
 
 ## Getting Started
 
@@ -235,8 +230,6 @@ We follow [Semantic Versioning](https://semver.org/):
 
 ## Getting Help
 
-- **Questions**: Open a [GitHub Discussion](https://github.com/fossology/fossology-helm/discussions)
-- **Bugs**: Create a [GitHub Issue](https://github.com/fossology/fossology-helm/issues)
 - **Security**: Email [fossology-security@fossology.org](mailto:fossology-security@fossology.org)
 - **Community**: Join the [FOSSology mailing list](https://lists.fossology.org/g/fossology)
 
