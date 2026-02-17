@@ -31,7 +31,6 @@ helm/fossology/
 │   ├── NOTES.txt
 │   ├── cnpg-cluster.yaml
 │   ├── db-deployment.yaml
-│   ├── exposition.yaml
 │   ├── imagepullsecret.yaml
 │   ├── ingress.yaml
 │   ├── pvc.yaml
