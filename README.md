@@ -1,147 +1,369 @@
-# FOSSology Helm Chart
+# fossology
 
-A Helm chart for deploying FOSSology - an open source license compliance software system and toolkit.
+A Helm chart for deploying FOSSology - an open source license compliance software system and toolkit
 
-## Description
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.4.0](https://img.shields.io/badge/AppVersion-4.4.0-informational?style=flat-square)
 
-FOSSology is a open source license compliance software system and toolkit. As a toolkit you can run license, copyright and export control scans from the command line. As a system, a database and web ui are provided to give you a compliance workflow. License, copyright and export scanners are tools available to help with your compliance activities.
+## Overview
+
+FOSSology is an open source license compliance software system and toolkit. As a toolkit you can run license, copyright and export control scans from the command line. As a system, a database and web ui are provided to give you a compliance workflow. License, copyright and export scanners are tools available to help with your compliance activities.
 
 ## Prerequisites
 
 - Kubernetes 1.19+
 - Helm 3.2.0+
-- PV provisioner support in the underlying infrastructure
+- PV provisioner support in the underlying infrastructure (if persistence is enabled)
 
-## Installing the Chart
+## Installation
 
-### From Helm Repository (Recommended)
+### Add Helm Repository
 
 ```bash
-# Add the FOSSology Helm repository
 helm repo add fossology https://fossology.github.io/fossology-helm
 helm repo update
+```
 
-# Install the chart
+### Install Chart
+
+```bash
+# Install with default values
 helm install my-fossology fossology/fossology
-```
 
-### From Source
-
-To install the chart with the release name `fossology` from source:
-
-```bash
-helm install fossology .
-```
-
-### With Custom Values
-
-```bash
-# Install with custom configuration
+# Install with custom values
 helm install my-fossology fossology/fossology -f my-values.yaml
 
 # Install in specific namespace
 helm install my-fossology fossology/fossology --namespace fossology --create-namespace
 ```
 
-The command deploys FOSSology on the Kubernetes cluster in the default configuration. The [Parameters](#parameters) section lists the parameters that can be configured during installation.
-
-## CI/CD and Releases
-
-This chart includes comprehensive GitHub Actions workflows for automated testing, documentation generation, and releases:
-
-- **🚀 Automated Releases**: Tagged releases trigger automatic chart packaging and publishing
-- **🔍 Continuous Integration**: Pull requests and pushes are automatically tested
-- **📚 Documentation**: Chart documentation is auto-generated and validated
-- **🔄 Dependency Updates**: Weekly automated dependency and version updates
-
-See [`.github/README.md`](.github/README.md) for detailed information about the CI/CD setup.
-
-### Release Process
-
-To create a new release:
-
-1. Update the version in [`Chart.yaml`](Chart.yaml)
-2. Update [`CHANGELOG.md`](CHANGELOG.md) with changes
-3. Create and push a git tag:
-   ```bash
-   git tag v1.0.1
-   git push origin v1.0.1
-   ```
-
-The release workflow will automatically:
-- Validate and test the chart
-- Create a GitHub release with packaged chart
-- Publish to GitHub Pages Helm repository
-- Push to GitHub Container Registry (OCI)
-
-## Uninstalling the Chart
-
-To uninstall/delete the `fossology` deployment:
+## Uninstallation
 
 ```bash
-helm delete fossology
+helm uninstall my-fossology
 ```
 
-The command removes all the Kubernetes components associated with the chart and deletes the release.
+## Configuration
 
-## Parameters
+## Values
 
-### Global parameters
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| affinity | object | `{}` |  |
+| dbimage.enableTestDb | bool | `false` |  |
+| dbimage.pullPolicy | string | `"IfNotPresent"` |  |
+| dbimage.repository | string | `"postgres"` |  |
+| dbimage.tag | float | `9.6` |  |
+| fossology.db_host | string | `""` |  |
+| fossology.db_name | string | `"fossology"` |  |
+| fossology.db_password | string | `""` |  |
+| fossology.db_port | int | `5432` |  |
+| fossology.db_user | string | `"fossology"` |  |
+| fullnameOverride | string | `""` |  |
+| image.pullPolicy | string | `"IfNotPresent"` |  |
+| image.repository | string | `"fossology/fossology"` |  |
+| image.tag | string | `"latest"` |  |
+| imagePullSecret.create | bool | `false` |  |
+| imagePullSecret.email | string | `""` |  |
+| imagePullSecret.name | string | `""` |  |
+| imagePullSecret.password | string | `""` |  |
+| imagePullSecret.registry | string | `""` |  |
+| imagePullSecret.username | string | `""` |  |
+| imagePullSecrets | list | `[]` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.class | string | `""` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.hosts[0].host | string | `"fossology.example.com"` |  |
+| ingress.hosts[0].paths[0] | string | `"/"` |  |
+| nameOverride | string | `""` |  |
+| namespace | string | `"default"` |  |
+| nodeSelector | object | `{}` |  |
+| persistence.accessMode | string | `"ReadWriteMany"` |  |
+| persistence.enabled | bool | `true` |  |
+| persistence.size | string | `"10Gi"` |  |
+| postgresql.database | string | `"app"` |  |
+| postgresql.enabled | bool | `false` |  |
+| postgresql.instances | int | `1` |  |
+| postgresql.name | string | `"fossology-postgresql"` |  |
+| postgresql.storage.size | string | `"8Gi"` |  |
+| postgresql.username | string | `"app"` |  |
+| replicaCount | int | `1` |  |
+| resources.limits.cpu | string | `"2000m"` |  |
+| resources.limits.memory | string | `"4Gi"` |  |
+| resources.requests.cpu | string | `"1000m"` |  |
+| resources.requests.memory | string | `"2Gi"` |  |
+| service.port | int | `80` |  |
+| service.type | string | `"ClusterIP"` |  |
+| servicescheduler.port | int | `80` |  |
+| servicescheduler.type | string | `"ClusterIP"` |  |
+| tolerations | list | `[]` |  |
 
-| Name                      | Description                                     | Value |
-| ------------------------- | ----------------------------------------------- | ----- |
-| `global.imageRegistry`    | Global Docker image registry                    | `""`  |
-| `global.imagePullSecrets` | Global Docker registry secret names as an array| `[]`  |
+## Examples
 
-### Common parameters
+The chart includes several example configurations in the `examples/` directory:
 
-| Name                     | Description                                        | Value           |
-| ------------------------ | -------------------------------------------------- | --------------- |
-| `nameOverride`           | String to partially override common.names.name    | `""`            |
-| `fullnameOverride`       | String to fully override common.names.fullname    | `""`            |
+- [`basic-deployment.yaml`](examples/basic-deployment.yaml) - Simple deployment with default PostgreSQL
+- [`production-cnpg.yaml`](examples/production-cnpg.yaml) - Production setup with CloudNativePG
+- [`external-database.yaml`](examples/external-database.yaml) - Using external database
 
-For a complete list of parameters, please refer to the [values.yaml](values.yaml) file.
+### Basic Deployment
 
-## Configuration and installation details
+```bash
+helm install fossology fossology/fossology -f examples/basic-deployment.yaml
+```
 
-### Example configurations
+### Production with CloudNativePG
 
-The [examples](examples/) directory contains example configurations for different deployment scenarios:
+```bash
+helm install fossology fossology/fossology -f examples/production-cnpg.yaml
+```
 
-- [Basic deployment](examples/basic-deployment.yaml) - Simple deployment with default settings
-- [External database](examples/external-database.yaml) - Using an external PostgreSQL database
-- [Production with CNPG](examples/production-cnpg.yaml) - Production setup with CloudNativePG
+### External Database
 
-### Database Configuration
+```bash
+helm install fossology fossology/fossology -f examples/external-database.yaml
+```
 
-FOSSology requires a PostgreSQL database. You can either:
+## Database Options
 
-1. Use the included PostgreSQL deployment (default)
-2. Use an external PostgreSQL database
-3. Use CloudNativePG for production deployments
+### Built-in PostgreSQL (Default)
 
-See the [examples](examples/) directory for configuration examples.
+The chart includes a PostgreSQL deployment by default:
+
+```yaml
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "fossology"
+    database: "fossology"
+```
+
+### CloudNativePG
+
+For production environments, use CloudNativePG:
+
+```yaml
+cnpg:
+  enabled: true
+  cluster:
+    instances: 3
+    postgresql:
+      parameters:
+        max_connections: "200"
+        shared_buffers: "256MB"
+```
+
+### External Database
+
+Connect to an existing PostgreSQL instance:
+
+```yaml
+postgresql:
+  enabled: false
+
+externalDatabase:
+  host: "postgres.example.com"
+  port: 5432
+  database: "fossology"
+  username: "fossology"
+  existingSecret: "fossology-db-secret"
+  existingSecretPasswordKey: "password"
+```
+
+## Persistence
+
+### Storage Classes
+
+Configure storage for different components:
+
+```yaml
+persistence:
+  repository:
+    enabled: true
+    storageClass: "fast-ssd"
+    size: "100Gi"
+ 
+  uploads:
+    enabled: true
+    storageClass: "standard"
+    size: "50Gi"
+```
+
+### Backup and Recovery
+
+For production deployments, ensure regular backups:
+
+```yaml
+cnpg:
+  enabled: true
+  cluster:
+    backup:
+      enabled: true
+      schedule: "0 2 * * *"
+      retentionPolicy: "30d"
+```
+
+## Security
+
+### Image Pull Secrets
+
+For private registries:
+
+```yaml
+imagePullSecrets:
+  - name: "my-registry-secret"
+```
+
+### External Secrets
+
+Use external secret management:
+
+```yaml
+externalSecrets:
+  enabled: true
+  secretStore:
+    name: "vault-backend"
+    kind: "SecretStore"
+```
+
+## Monitoring and Observability
+
+### Service Monitor
+
+Enable Prometheus monitoring:
+
+```yaml
+serviceMonitor:
+  enabled: true
+  namespace: "monitoring"
+  labels:
+    release: "prometheus"
+```
+
+### Logging
+
+Configure log levels:
+
+```yaml
+fossology:
+  web:
+    logLevel: "INFO"
+  scheduler:
+    logLevel: "DEBUG"
+```
+
+## Networking
+
+### Ingress
+
+Configure ingress for external access:
+
+```yaml
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: fossology.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: fossology-tls
+      hosts:
+        - fossology.example.com
+```
+
+### Service Types
+
+Choose appropriate service type:
+
+```yaml
+service:
+  type: ClusterIP  # ClusterIP, NodePort, LoadBalancer
+  port: 80
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Pod stuck in Pending state**: Check if PersistentVolumes are available
-2. **Database connection issues**: Verify database credentials and connectivity
-3. **Image pull errors**: Check image registry and pull secrets configuration
+1. **Database Connection Issues**
+   ```bash
+   kubectl logs deployment/fossology-web
+   kubectl describe pod -l app.kubernetes.io/name=fossology
+   ```
 
-### Getting Help
+2. **Storage Issues**
+   ```bash
+   kubectl get pvc
+   kubectl describe pvc fossology-repository
+   ```
 
-- Check the [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines
-- Review the [CHANGELOG.md](CHANGELOG.md) for version history
-- Visit the [FOSSology website](https://www.fossology.org/) for more information
+3. **Resource Constraints**
+   ```bash
+   kubectl top pods
+   kubectl describe nodes
+   ```
+
+### Debug Mode
+
+Enable debug logging:
+
+```yaml
+fossology:
+  web:
+    logLevel: "DEBUG"
+  scheduler:
+    logLevel: "DEBUG"
+```
+
+## Upgrading
+
+### Backup Before Upgrade
+
+Always backup your data before upgrading:
+
+```bash
+# Backup database
+kubectl exec -it fossology-postgresql-0 -- pg_dump -U fossology fossology > backup.sql
+
+# Backup persistent volumes
+kubectl get pvc
+```
+
+### Upgrade Process
+
+```bash
+# Update repository
+helm repo update
+
+# Check what will change
+helm diff upgrade my-fossology fossology/fossology
+
+# Perform upgrade
+helm upgrade my-fossology fossology/fossology
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing to this chart.
 
 ## License
 
-This Helm chart is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for the full license text.
+## Source Code
+
+* <https://github.com/fossology/fossology>
+* <https://github.com/fossology/fossology-helm>
 
 ## Maintainers
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| FOSSology Team | fossology@fossology.org | https://www.fossology.org/ |
+| FOSSology Team | <fossology@fossology.org> | <https://www.fossology.org/> |
+
+---
+
+For more information about FOSSology, visit [https://www.fossology.org/](https://www.fossology.org/)
