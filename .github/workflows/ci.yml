@@ -101,17 +101,40 @@ jobs:
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
 
-      - name: Run chart-testing (list)
-        run: ct list --config .github/ct.yaml
-
       - name: Run chart-testing (lint)
-        run: ct lint --config .github/ct.yaml
+        run: ct lint --config .github/ct.yaml --all
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: kind
+          wait: 300s
+          kubectl_version: v1.28.0
+
+      - name: Wait for cluster to be ready
+        run: |
+          echo "Waiting for cluster to be ready..."
+          kubectl cluster-info
+          kubectl get nodes
+          kubectl wait --for=condition=Ready nodes --all --timeout=300s
+
+      - name: Debug Kubernetes configuration
+        run: |
+          echo "=== Kubernetes Configuration Debug ==="
+          echo "KUBECONFIG: $KUBECONFIG"
+          echo "kubectl version:"
+          kubectl version --client
+          echo "kubectl config view:"
+          kubectl config view --minify
+          echo "kubectl cluster-info:"
+          kubectl cluster-info
+          echo "kubectl get nodes:"
+          kubectl get nodes -o wide
+          echo "kubectl get pods --all-namespaces:"
+          kubectl get pods --all-namespaces
 
       - name: Run chart-testing (install)
-        run: ct install --config .github/ct.yaml --helm-extra-set-args "--timeout=600s"
+        run: ct install --config .github/ct.yaml --all --helm-extra-set-args "--timeout=600s"
 
   docs-validation:
     runs-on: ubuntu-latest

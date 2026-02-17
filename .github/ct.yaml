@@ -33,3 +33,7 @@ additional-commands:
   - helm template test . -f examples/basic-deployment.yaml
   - helm template test . -f examples/production-cnpg.yaml
   - helm template test . -f examples/external-database.yaml
+
+# Values files for chart testing
+chart-values:
+  - .github/ct-values.yaml

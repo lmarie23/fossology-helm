@@ -1,0 +1,26 @@
+# Chart Testing values file
+# This file provides minimal configuration for chart testing
+
+# Enable test database for CI testing
+dbimage:
+  enableTestDb: true
+
+# Use minimal resources for testing
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+# Disable persistence for testing
+persistence:
+  enabled: false
+
+# Set database configuration for testing
+fossology:
+  db_name: fossology
+  db_user: fossology
+  db_password: testpassword
+  db_host: ""  # Will use the test db service
