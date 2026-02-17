@@ -1,0 +1,155 @@
+name: Dependency Update
+
+on:
+  schedule:
+    # Run weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Add helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Check for dependency updates
+        id: check-updates
+        run: |
+          # Check if Chart.yaml has dependencies
+          if grep -q "dependencies:" Chart.yaml; then
+            echo "has-dependencies=true" >> $GITHUB_OUTPUT
+            
+            # Update dependencies
+            helm dependency update
+            
+            # Check if lock file changed
+            if git diff --quiet Chart.lock; then
+              echo "updates-available=false" >> $GITHUB_OUTPUT
+            else
+              echo "updates-available=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "has-dependencies=false" >> $GITHUB_OUTPUT
+            echo "updates-available=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for FOSSology image updates
+        id: check-image
+        run: |
+          # Get current app version from Chart.yaml
+          CURRENT_VERSION=$(grep '^appVersion:' Chart.yaml | cut -d'"' -f2)
+          echo "current-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          
+          # Check latest FOSSology release from GitHub API
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/fossology/fossology/releases/latest | jq -r '.tag_name')
+          echo "latest-version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          
+          if [[ "$CURRENT_VERSION" != "$LATEST_VERSION" ]]; then
+            echo "image-update-available=true" >> $GITHUB_OUTPUT
+          else
+            echo "image-update-available=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update FOSSology version
+        if: steps.check-image.outputs.image-update-available == 'true'
+        run: |
+          LATEST_VERSION="${{ steps.check-image.outputs.latest-version }}"
+          
+          # Update appVersion in Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"$LATEST_VERSION\"/" Chart.yaml
+          
+          # Update default image tag in values.yaml
+          sed -i "s/tag:.*/tag: \"$LATEST_VERSION\"/" values.yaml
+
+      - name: Test updated chart
+        if: steps.check-updates.outputs.updates-available == 'true' || steps.check-image.outputs.image-update-available == 'true'
+        run: |
+          # Lint the chart
+          helm lint .
+          
+          # Test template rendering
+          helm template test . --debug > /dev/null
+          
+          # Test with examples
+          helm template test . -f examples/basic-deployment.yaml > /dev/null
+
+      - name: Create Pull Request
+        if: steps.check-updates.outputs.updates-available == 'true' || steps.check-image.outputs.image-update-available == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            chore: update dependencies and FOSSology version
+            
+            - Update Helm chart dependencies
+            - Update FOSSology to ${{ steps.check-image.outputs.latest-version }}
+          title: 'chore: update dependencies and FOSSology version'
+          body: |
+            ## Dependency Updates
+            
+            This PR contains automated updates to chart dependencies and FOSSology version.
+            
+            ### Changes
+            
+            - **Helm Dependencies**: ${{ steps.check-updates.outputs.updates-available == 'true' && 'Updated' || 'No updates available' }}
+            - **FOSSology Version**: ${{ steps.check-image.outputs.image-update-available == 'true' && format('Updated from {0} to {1}', steps.check-image.outputs.current-version, steps.check-image.outputs.latest-version) || 'No updates available' }}
+            
+            ### Testing
+            
+            - [x] Chart linting passed
+            - [x] Template rendering successful
+            - [x] Example configurations validated
+            
+            ### Review Checklist
+            
+            - [ ] Review CHANGELOG.md for any breaking changes
+            - [ ] Test deployment in development environment
+            - [ ] Verify compatibility with current Kubernetes versions
+            - [ ] Check for any new configuration options
+            
+            ---
+            
+            This PR was automatically created by the dependency update workflow.
+          branch: chore/update-dependencies
+          delete-branch: true
+          labels: |
+            dependencies
+            automated
+            chore
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '0'
+
+      - name: Check FOSSology image for vulnerabilities
+        run: |
+          # Get current app version
+          CURRENT_VERSION=$(grep '^appVersion:' Chart.yaml | cut -d'"' -f2)
+          
+          # Scan the FOSSology image
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy image fossology/fossology:$CURRENT_VERSION \
+            --format table --exit-code 0

@@ -14,13 +14,65 @@ FOSSology is a open source license compliance software system and toolkit. As a 
 
 ## Installing the Chart
 
-To install the chart with the release name `fossology`:
+### From Helm Repository (Recommended)
+
+```bash
+# Add the FOSSology Helm repository
+helm repo add fossology https://fossology.github.io/fossology-helm
+helm repo update
+
+# Install the chart
+helm install my-fossology fossology/fossology
+```
+
+### From Source
+
+To install the chart with the release name `fossology` from source:
 
 ```bash
 helm install fossology .
 ```
 
+### With Custom Values
+
+```bash
+# Install with custom configuration
+helm install my-fossology fossology/fossology -f my-values.yaml
+
+# Install in specific namespace
+helm install my-fossology fossology/fossology --namespace fossology --create-namespace
+```
+
 The command deploys FOSSology on the Kubernetes cluster in the default configuration. The [Parameters](#parameters) section lists the parameters that can be configured during installation.
+
+## CI/CD and Releases
+
+This chart includes comprehensive GitHub Actions workflows for automated testing, documentation generation, and releases:
+
+- **🚀 Automated Releases**: Tagged releases trigger automatic chart packaging and publishing
+- **🔍 Continuous Integration**: Pull requests and pushes are automatically tested
+- **📚 Documentation**: Chart documentation is auto-generated and validated
+- **🔄 Dependency Updates**: Weekly automated dependency and version updates
+
+See [`.github/README.md`](.github/README.md) for detailed information about the CI/CD setup.
+
+### Release Process
+
+To create a new release:
+
+1. Update the version in [`Chart.yaml`](Chart.yaml)
+2. Update [`CHANGELOG.md`](CHANGELOG.md) with changes
+3. Create and push a git tag:
+   ```bash
+   git tag v1.0.1
+   git push origin v1.0.1
+   ```
+
+The release workflow will automatically:
+- Validate and test the chart
+- Create a GitHub release with packaged chart
+- Publish to GitHub Pages Helm repository
+- Push to GitHub Container Registry (OCI)
 
 ## Uninstalling the Chart
 

@@ -1,0 +1,188 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  HELM_VERSION: v3.14.0
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Add helm repos
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Lint chart
+        run: helm lint .
+
+      - name: Check chart formatting
+        run: |
+          helm template test . --debug > /dev/null
+
+      - name: Test with default values
+        run: |
+          helm template test . > /dev/null
+
+      - name: Test with example configurations
+        run: |
+          echo "Testing basic deployment..."
+          helm template test . -f examples/basic-deployment.yaml > /dev/null
+          
+          echo "Testing production CNPG..."
+          helm template test . -f examples/production-cnpg.yaml > /dev/null
+          
+          echo "Testing external database..."
+          helm template test . -f examples/external-database.yaml > /dev/null
+
+      - name: Test chart installation (dry-run)
+        run: |
+          helm install test-fossology . --dry-run --debug
+
+      - name: Validate Kubernetes manifests
+        uses: instrumenta/kubeval-action@master
+        with:
+          files: |
+            templates/
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  chart-testing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.6.1
+
+      - name: Add helm repos
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Run chart-testing (list)
+        run: ct list --config .github/ct.yaml
+
+      - name: Run chart-testing (lint)
+        run: ct lint --config .github/ct.yaml
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.8.0
+
+      - name: Run chart-testing (install)
+        run: ct install --config .github/ct.yaml --helm-extra-set-args "--timeout=600s"
+
+  docs-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate README links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.github/mlc_config.json'
+
+      - name: Check for required files
+        run: |
+          required_files=(
+            "Chart.yaml"
+            "values.yaml"
+            "README.md"
+            "CHANGELOG.md"
+            "LICENSE"
+            "templates/_helpers.tpl"
+            "templates/NOTES.txt"
+          )
+          
+          for file in "${required_files[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "❌ Required file missing: $file"
+              exit 1
+            else
+              echo "✅ Found: $file"
+            fi
+          done
+
+      - name: Validate Chart.yaml
+        run: |
+          # Check required fields in Chart.yaml
+          required_fields=("name" "version" "description" "type" "appVersion")
+          
+          for field in "${required_fields[@]}"; do
+            if ! grep -q "^${field}:" Chart.yaml; then
+              echo "❌ Required field missing in Chart.yaml: $field"
+              exit 1
+            else
+              echo "✅ Found field: $field"
+            fi
+          done
+
+  version-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if version was updated
+        run: |
+          # Get the version from main branch
+          git fetch origin main
+          MAIN_VERSION=$(git show origin/main:Chart.yaml | grep '^version:' | cut -d' ' -f2)
+          CURRENT_VERSION=$(grep '^version:' Chart.yaml | cut -d' ' -f2)
+          
+          echo "Main branch version: $MAIN_VERSION"
+          echo "Current version: $CURRENT_VERSION"
+          
+          if [[ "$MAIN_VERSION" == "$CURRENT_VERSION" ]]; then
+            echo "⚠️  Chart version not updated. Consider updating the version in Chart.yaml if this PR introduces changes."
+            echo "Current version: $CURRENT_VERSION"
+          else
+            echo "✅ Chart version updated from $MAIN_VERSION to $CURRENT_VERSION"
+          fi

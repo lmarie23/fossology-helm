@@ -1,0 +1,35 @@
+# Chart Testing Configuration
+# See https://github.com/helm/chart-testing/blob/main/doc/ct_lint.md
+
+# Directories containing charts
+chart-dirs:
+  - .
+
+# Charts to exclude from testing
+excluded-charts: []
+
+# Helm repositories to add
+helm-repos:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+
+# Additional Helm lint settings
+helm-extra-args: --timeout 600s
+
+# Target branch for comparison
+target-branch: main
+
+# Check version increment
+check-version-increment: true
+
+# Validate maintainers
+validate-maintainers: true
+
+# Validate chart schema
+validate-chart-schema: true
+
+# Additional values files to test
+additional-commands:
+  - helm template test . -f examples/basic-deployment.yaml
+  - helm template test . -f examples/production-cnpg.yaml
+  - helm template test . -f examples/external-database.yaml
