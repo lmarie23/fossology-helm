@@ -3,7 +3,7 @@ name: fossology
 description: A Helm chart for deploying FOSSology - an open source license compliance software system and toolkit
 type: application
 version: 1.0.0
-appVersion: "4.4.0"
+appVersion: "4.6.0"
 home: https://www.fossology.org/
 sources:
   - https://github.com/fossology/fossology

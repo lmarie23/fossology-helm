@@ -7,7 +7,7 @@ namespace: default
 
 image:
   repository: fossology/fossology
-  tag: latest
+  tag: "4.6.0"
   pullPolicy: IfNotPresent
 
 dbimage:
@@ -15,7 +15,7 @@ dbimage:
 # the chart
   enableTestDb: false
   repository: postgres
-  tag: 9.6
+  tag: "4.6.0"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
