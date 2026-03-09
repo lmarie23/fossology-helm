@@ -17,6 +17,37 @@ spec:
         app.kubernetes.io/name:  {{ include "fossology.fullname" . }}-scheduler
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      initContainers:
+        - name: wait-for-db
+          image: postgres:9.6
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h $FOSSOLOGY_DB_HOST -p {{ .Values.fossology.db_port }} -U $FOSSOLOGY_DB_USER; do
+                echo "Waiting for database to be ready..."
+                sleep 2
+              done
+              echo "Database is ready!"
+          env:
+            - name: FOSSOLOGY_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                {{- if .Values.fossology.externalSecret }}
+                  name: {{ .Values.fossology.externalSecret }}
+                {{- else }}
+                  name: {{ template "fossology.fullname" . }}
+                {{- end }}
+                  key: db_host
+            - name: FOSSOLOGY_DB_USER
+              valueFrom:
+                secretKeyRef:
+                {{- if .Values.fossology.externalSecret }}
+                  name: {{ .Values.fossology.externalSecret }}
+                {{- else }}
+                  name: {{ template "fossology.fullname" . }}
+                {{- end }}
+                  key: db_user
       containers:
         - name: scheduler
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -65,6 +96,20 @@ spec:
           command:
              - "/fossology/docker-entrypoint.sh"
              - "scheduler"
+          livenessProbe:
+            tcpSocket:
+              port: scheduler
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: scheduler
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
           volumeMounts:
             - mountPath: /srv/fossology/repository/
               name: cache-volume
