@@ -19,7 +19,7 @@ spec:
     spec:
       initContainers:
         - name: wait-for-db
-          image: postgres:9.6
+          image: postgres:17
           command:
             - sh
             - -c
